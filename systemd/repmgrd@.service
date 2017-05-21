@@ -1,0 +1,31 @@
+# systemd service template for repmgr daemons in PostgreSQL
+# clusters. The actual instances will be called
+# "repmgrd@version-cluster", e.g. "repmgrd@9.3-main". The
+# variable %i expands to "version-cluster", %I expands to
+# "version/cluster".  (%I breaks for cluster names containing dashes.)
+
+[Unit]
+Description=repmgr daemon on PostgreSQL Cluster %i
+ConditionPathExists=/etc/postgresql/%I/repmgr.conf
+PartOf=repmgrd.service
+ReloadPropagatedFrom=repmgrd.service
+Before=repmgrd.service
+
+[Service]
+Type=forking
+# @: use "repmgrd@%i" as process name
+ExecStart=@/usr/bin/repmgr_ctld repmgrd@%i --skip-systemctl-redirect %i start
+ExecStop=/usr/bin/repmgr_ctld --skip-systemctl-redirect -m fast %i stop
+ExecReload=/usr/bin/repmgr_ctld --skip-systemctl-redirect %i reload
+PIDFile=/var/run/postgresql/repmgrd-%i.pid
+SyslogIdentifier=repmgrd@%i
+# restarting automatically will prevent "repmgr_ctld ... stop" from working,
+# so we disable it here. Also, the postmaster will restart by itself on most
+# problems anyway, so it is questionable if one wants to enable external
+# automatic restarts.
+#Restart=on-failure
+# (This should make repmgr_ctld stop work, but doesn't:)
+#RestartPreventExitStatus=SIGINT SIGTERM
+
+[Install]
+WantedBy=multi-user.target

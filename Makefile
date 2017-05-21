@@ -99,6 +99,9 @@ deb: repmgrd repmgr
 	cp sql/uninstall_repmgr_funcs.sql ./debian$(SHAREDIR)/contrib/
 	mkdir -p ./debian$(PKGLIBDIR)/
 	cp sql/repmgr_funcs.so ./debian$(PKGLIBDIR)/
+	mkdir -p ./debian/lib/systemd/system/
+	cp systemd/repmgrd.service ./debian/lib/systemd/system/
+	cp systemd/repmgrd@.service ./debian/lib/systemd/system/
 	dpkg-deb --build debian
 	mv debian.deb ../postgresql-repmgr-$(PG_VERSION)_$(REPMGR_VERSION).deb
 	rm -rf ./debian/usr
